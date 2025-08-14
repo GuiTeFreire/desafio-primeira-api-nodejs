@@ -1,64 +1,46 @@
 import fastify from 'fastify'
-import crypto from 'node:crypto'
+import { validatorCompiler, serializerCompiler, ZodTypeProvider, jsonSchemaTransform } from 'fastify-type-provider-zod'
+import fastifySwagger from '@fastify/swagger'
+import { createCourseRoute } from './src/routes/create-course.ts'
+import { getCoursesRoute } from './src/routes/get-courses.ts'
+import { getCourseByIdRoute } from './src/routes/get-course-bt-id.ts'
+import scalarAPIReference from '@scalar/fastify-api-reference'
 
 const server = fastify({
-    logger: {
-        transport: {
-            target: 'pino-pretty',
-            options: {
-                translateTime: 'HH:MM:ss Z',
-                ignore: 'pid,hostname',
-            },
-        },
+  logger: {
+    transport: {
+      target: 'pino-pretty',
+        options: {
+          translateTime: 'HH:MM:ss Z',
+          ignore: 'pid,hostname',
+      },
     },
-})
+  },
+}).withTypeProvider<ZodTypeProvider>()
 
-const courses =[
-    { id: '1', title: 'Curso de Node.js'},
-    { id: '2', title: 'Curso de React'},
-    { id: '3', title: 'Curso de React Native'}
-]
+if (process.env.NODE_ENV === 'development') {
+  server.register(fastifySwagger, {
+    openapi: {
+      info: {
+        title: 'Desafio Node.js',
+        version: '1.0.0',
+      }
+    },
+    transform: jsonSchemaTransform,
+  })
+  
+  server.register(scalarAPIReference, {
+    routePrefix: '/docs',
+  })
+}
 
-server.get('/courses', () => {
-    return { courses }
-})
+server.setSerializerCompiler(serializerCompiler)
+server.setValidatorCompiler(validatorCompiler)
 
-server.get('/courses/:id', (req, res) => {
-    type Params = {
-        id: string
-    }
-
-    const params = req.params as Params
-    const courseId = params.id
-
-    const course = courses.find(course => course.id === courseId)
-
-    if (course) {
-        return { course }
-    }
-
-    return res.status(404).send()
-})
-
-server.post('/courses', (req, res) => {
-    type Body = {
-        title: string
-    }
-
-    const courseId = crypto.randomUUID()
-
-    const body = req.body as Body
-    const courseTitle = body.title
-
-    if (!courseTitle) {
-        return res.status(400).send({ message: 'Título obrigatório.' })
-    }
-    
-    courses.push({ id: courseId, title: courseTitle })
-
-    return res.status(201).send({ courseId })
-})
+server.register(createCourseRoute)
+server.register(getCoursesRoute)
+server.register(getCourseByIdRoute)
 
 server.listen({ port: 3333 }).then(() => {
-    console.log('HTTP server is running!')
+  console.log('HTTP server is running!')
 })
