@@ -15,6 +15,34 @@
       "when": 1755120204857,
       "tag": "0001_clever_fenris",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1755283875624,
+      "tag": "0002_adorable_mysterio",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1755284605933,
+      "tag": "0003_silly_shard",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1755526475679,
+      "tag": "0004_clever_black_tarantula",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1755526830286,
+      "tag": "0005_tidy_the_initiative",
+      "breakpoints": true
     }
   ]
 }

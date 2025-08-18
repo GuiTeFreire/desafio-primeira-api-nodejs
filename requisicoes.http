@@ -2,7 +2,7 @@ POST http://localhost:3333/courses
 Content-Type: application/json
 
 {
-    "title": "Curso de Docker 2"
+    "title": "Curso de React Native"
 }
 
 ###
@@ -11,4 +11,7 @@ GET http://localhost:3333/courses
 
 ###
 
-GET http://localhost:3333/courses/38f586d9-6e92-434e-98c4-9728bdc5a748
+GET http://localhost:3333/courses/0bb74935-05f7-4247-b922-adc6ac9e648b
+
+###
+DELETE http://localhost:3333/courses/89b4c513-2f7e-403a-ae4a-2bd817316ce9

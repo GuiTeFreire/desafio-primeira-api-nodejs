@@ -1,10 +1,12 @@
+import 'dotenv/config'
 import fastify from 'fastify'
 import { validatorCompiler, serializerCompiler, ZodTypeProvider, jsonSchemaTransform } from 'fastify-type-provider-zod'
 import fastifySwagger from '@fastify/swagger'
-import { createCourseRoute } from './src/routes/create-course.ts'
-import { getCoursesRoute } from './src/routes/get-courses.ts'
-import { getCourseByIdRoute } from './src/routes/get-course-bt-id.ts'
+import { createCourseRoute } from './routes/create-course.ts'
+import { getCoursesRoute } from './routes/get-courses.ts'
+import { getCourseByIdRoute } from './routes/get-course-by-id.ts'
 import scalarAPIReference from '@scalar/fastify-api-reference'
+import { deleteCourseByIdRoute } from './routes/delete-course.ts'
 
 const server = fastify({
   logger: {
@@ -40,7 +42,6 @@ server.setValidatorCompiler(validatorCompiler)
 server.register(createCourseRoute)
 server.register(getCoursesRoute)
 server.register(getCourseByIdRoute)
+server.register(deleteCourseByIdRoute)
 
-server.listen({ port: 3333 }).then(() => {
-  console.log('HTTP server is running!')
-})
+export { server }
