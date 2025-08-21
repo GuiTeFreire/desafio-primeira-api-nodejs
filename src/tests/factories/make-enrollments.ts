@@ -1,19 +1,16 @@
-import { faker } from "@faker-js/faker";
 import { db } from "../../database/client.ts";
-import { courses, enrollments, users } from "../../database/schema.ts";
+import { enrollments } from "../../database/schema.ts";
+import { makeUser } from "./make-user.ts";
+import { makeCourse } from "./make-course.ts";
 
 export async function makeEnrollment(courseId?: string) {
-    const usersInsert = await db.insert(users).values([
-        { name: faker.person.fullName(), email: faker.internet.email() },
-    ]).returning()
+	const { user } = await makeUser()
 
-    const coursesInsert = await db.insert(courses).values([
-        { title: faker.lorem.words(4) },
-    ]).returning()
+	const selectedCourseId = courseId ?? (await makeCourse()).id
 
-    const result = await db.insert(enrollments).values([
-        { courseId: courseId ?? coursesInsert[0].id, userId: usersInsert[0].id },
-    ]).returning()
+	const result = await db.insert(enrollments).values([
+		{ courseId: selectedCourseId, userId: user.id },
+	]).returning()
 
-    return result[0]
+	return result[0]
 }

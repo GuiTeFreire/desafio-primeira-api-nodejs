@@ -1,8 +1,10 @@
 POST http://localhost:3333/courses
 Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNmY1NTk2Mi00NzlkLTRlODYtOTU0Mi01YTBjNjZhNTg4MDgiLCJyb2xlIjoibWFuYWdlciIsImlhdCI6MTc1NTc5NTA4NH0.xv8ZGceX_4-0sK5W5MtsWou_RlIKB3ICQv6WZYNDoP0
+
 
 {
-    "title": "Curso de React Native"
+    "title": "Curso de React"
 }
 
 ###
@@ -11,7 +13,17 @@ GET http://localhost:3333/courses
 
 ###
 
-GET http://localhost:3333/courses/0bb74935-05f7-4247-b922-adc6ac9e648b
+GET http://localhost:3333/courses/747db169-3e56-4e46-a002-1c9594e547b4
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNmY1NTk2Mi00NzlkLTRlODYtOTU0Mi01YTBjNjZhNTg4MDgiLCJyb2xlIjoibWFuYWdlciIsImlhdCI6MTc1NTc5NTA4NH0.xv8ZGceX_4-0sK5W5MtsWou_RlIKB3ICQv6WZYNDoP0
 
 ###
 DELETE http://localhost:3333/courses/89b4c513-2f7e-403a-ae4a-2bd817316ce9
+
+###
+POST http://localhost:3333/sessions
+Content-Type: application/json
+
+{
+    "email": "Carlos63@gmail.com",
+    "password": "123456"
+}
