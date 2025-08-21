@@ -1,21 +1,71 @@
 # 🚀 Projeto Aula Node.js
 
-API REST para gerenciamento de cursos desenvolvida com Node.js, Fastify, TypeScript, Drizzle ORM e PostgreSQL.
+API REST para gerenciamento de cursos desenvolvida com Node.js, Fastify, TypeScript, Drizzle ORM e PostgreSQL. Sistema completo com autenticação JWT, controle de acesso baseado em roles e gerenciamento de matrículas.
 
 ## 📋 Descrição
 
-Sistema de gerenciamento de cursos com endpoints para criação, listagem, busca e remoção de cursos. Em desenvolvimento, expõe documentação em `/docs`.
+Sistema de gerenciamento de cursos com endpoints para criação, listagem, busca e remoção de cursos. Inclui sistema de autenticação JWT, controle de acesso baseado em roles (student/manager) e gerenciamento de matrículas. Em desenvolvimento, expõe documentação em `/docs`.
+
+## 🏗️ Arquitetura
+
+```mermaid
+graph TB
+    subgraph "Frontend/Client"
+        A[Cliente HTTP]
+    end
+
+    subgraph "API Layer"
+        B[Fastify Server]
+        C[Routes]
+        D[Middleware]
+        E[Validation Zod]
+    end
+
+    subgraph "Business Logic"
+        F[Authentication]
+        G[Role Check]
+        H[Course Management]
+        I[User Management]
+    end
+
+    subgraph "Data Layer"
+        J[Drizzle ORM]
+        K[PostgreSQL]
+    end
+
+    subgraph "Security"
+        L[JWT Token]
+        M[Argon2 Hash]
+        N[Role-based Access]
+    end
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    H --> J
+    I --> J
+    J --> K
+    F --> L
+    F --> M
+    G --> N
+```
 
 ## 🛠️ Tecnologias
 
-- **Node.js**
-- **Fastify**
-- **TypeScript**
-- **PostgreSQL**
-- **Drizzle ORM**
-- **Zod**
-- **Docker**
-- **Vitest + Supertest** (testes e cobertura com V8)
+- **Node.js** - Runtime JavaScript
+- **Fastify** - Framework web rápido
+- **TypeScript** - Superset JavaScript tipado
+- **PostgreSQL** - Banco de dados relacional
+- **Drizzle ORM** - ORM moderno e type-safe
+- **Zod** - Validação de schemas
+- **JWT** - Autenticação stateless
+- **Argon2** - Hash de senhas seguro
+- **Docker** - Containerização
+- **Vitest + Supertest** - Testes e cobertura com V8
 
 ## 🚀 Como executar
 
@@ -90,6 +140,8 @@ npx dotenv -e .env.test vitest run --coverage
 - `id` - UUID (chave primária)
 - `name` - Nome do usuário
 - `email` - Email único do usuário
+- `password` - Hash da senha (Argon2)
+- `role` - Role do usuário (student/manager)
 
 ### Tabela `courses`
 
@@ -103,42 +155,98 @@ npx dotenv -e .env.test vitest run --coverage
 - `userId` - FK para `users.id`
 - `courseId` - FK para `courses.id`
 - `createdAt` - Timestamp com timezone
+- **Índice único** em (userId, courseId)
 
 ## 🔌 Endpoints da API
 
-### POST `/courses`
+### 🔐 Autenticação
 
-Cria um novo curso.
+#### POST `/sessions`
 
-Body:
+Login do usuário.
 
-```json
-{ "title": "Nome do curso" }
-```
-
-Resposta (201):
+**Body:**
 
 ```json
-{ "courseId": "uuid-do-curso" }
+{
+  "email": "user@example.com",
+  "password": "senha123"
+}
 ```
 
-### GET `/courses`
+**Resposta (200):**
 
-Lista todos os cursos.
+```json
+{
+  "token": "jwt-token-aqui"
+}
+```
 
-### GET `/courses/:id`
+### 📚 Cursos
 
-Busca um curso pelo ID.
+#### POST `/courses`
 
-### DELETE `/courses/:id`
+Cria um novo curso. **Requer autenticação e role 'manager'**.
 
-Remove um curso pelo ID.
+**Headers:**
+
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Body:**
+
+```json
+{
+  "title": "Nome do curso",
+  "description": "Descrição do curso"
+}
+```
+
+**Resposta (201):**
+
+```json
+{
+  "courseId": "uuid-do-curso"
+}
+```
+
+#### GET `/courses`
+
+Lista todos os cursos. **Requer autenticação**.
+
+#### GET `/courses/:id`
+
+Busca um curso pelo ID. **Requer autenticação**.
+
+#### DELETE `/courses/:id`
+
+Remove um curso pelo ID. **Requer autenticação e role 'manager'**.
+
+## 🔐 Sistema de Autenticação
+
+### JWT Token
+
+- **Algoritmo**: HS256
+- **Payload**: `{ sub: userId, role: userRole }`
+- **Expiração**: Configurável via `JWT_SECRET`
+
+### Controle de Acesso
+
+- **Student**: Pode visualizar cursos e fazer matrículas
+- **Manager**: Pode criar, editar e deletar cursos
+
+### Middleware de Segurança
+
+- `check-request-jwt`: Valida token JWT
+- `check-user-role`: Verifica permissões baseadas em role
 
 ## 📖 Documentação da API
 
 Em desenvolvimento, disponível em:
 
-- **API Reference**: `/docs`
+- **API Reference**: `/docs` (Swagger UI)
+- **Scalar API Reference**: `/docs` (interface moderna)
 
 ## 🐳 Docker
 
@@ -154,18 +262,20 @@ docker compose down
 
 Crie os arquivos de ambiente na raiz do projeto:
 
-`.env`
+### `.env`
 
 ```env
 NODE_ENV=development
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/desafio
+JWT_SECRET=sua-chave-secreta-aqui
 ```
 
-`.env.test` (exemplo)
+### `.env.test`
 
 ```env
 NODE_ENV=test
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/desafio_teste
+JWT_SECRET=chave-teste
 ```
 
 ## 📁 Estrutura do projeto
@@ -173,21 +283,50 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/desafio_teste
 ```
 projeto-aula-node/
 ├── src/
-│   ├── app.ts
-│   ├── server.ts
+│   ├── app.ts                 # Configuração do Fastify
+│   ├── server.ts              # Servidor HTTP
 │   ├── database/
-│   │   ├── client.ts
-│   │   ├── schema.ts
-│   │   └── seed.ts
-│   └── routes/
-│       ├── create-course.ts
-│       ├── get-courses.ts
-│       ├── get-course-by-id.ts
-│       └── delete-course.ts
-├── drizzle/
-├── docker-compose.yml
-├── vitest.config.ts
+│   │   ├── client.ts          # Conexão com banco
+│   │   ├── schema.ts          # Schemas Drizzle
+│   │   └── seed.ts            # Dados de exemplo
+│   ├── routes/
+│   │   ├── create-course.ts   # Criação de cursos
+│   │   ├── get-courses.ts     # Listagem de cursos
+│   │   ├── get-course-by-id.ts # Busca por ID
+│   │   ├── delete-course.ts   # Remoção de cursos
+│   │   └── login.ts           # Autenticação
+│   ├── hooks/
+│   │   ├── check-request-jwt.ts # Validação JWT
+│   │   └── check-user-role.ts   # Verificação de role
+│   ├── utils/
+│   │   └── get-authenticated-user-from-request.ts
+│   └── tests/                 # Testes automatizados
+├── drizzle/                   # Migrações do banco
+├── docker-compose.yml         # Configuração Docker
+├── vitest.config.ts           # Configuração de testes
 └── package.json
+```
+
+## 🚀 Deploy
+
+### Render.com
+
+1. Conecte seu repositório GitHub
+2. Configure como "Web Service"
+3. **Build Command**: `npm install`
+4. **Start Command**: `npm run dev`
+5. Configure variáveis de ambiente:
+   - `DATABASE_URL`
+   - `JWT_SECRET`
+   - `NODE_ENV=production`
+
+### Variáveis de Ambiente para Produção
+
+```env
+NODE_ENV=production
+DATABASE_URL=sua-url-postgresql-producao
+JWT_SECRET=chave-secreta-producao-forte
+PORT=10000
 ```
 
 ## 🤝 Contribuição
